@@ -265,7 +265,7 @@ hr.div{border:none; border-top:1px solid var(--line); margin:16px 0;}
       </svg>
       <div class="brand-text">
         <div class="name" id="brandName">Five Grains Bakery</div>
-        <div class="tag">Business Tracker</div>
+        <div class="tag" id="brandTag">Business Tracker</div>
       </div>
     </div>
     <ul class="nav" id="navList">
@@ -325,7 +325,7 @@ hr.div{border:none; border-top:1px solid var(--line); margin:16px 0;}
           <p class="sub">Track bread baked, sold, revenue &amp; waste by day</p>
         </div>
         <div class="topbar-actions">
-          <button class="btn btn-primary" id="btnAddSale">&#43; Add Entry</button>
+          <button class="btn btn-primary owner-only" id="btnAddSale">&#43; Add Entry</button>
         </div>
       </div>
       <div class="form-panel" id="saleForm" style="display:none;"></div>
@@ -340,8 +340,8 @@ hr.div{border:none; border-top:1px solid var(--line); margin:16px 0;}
         <table>
           <thead><tr>
             <th>Date</th><th>Bread Type</th><th class="num">Baked</th><th class="num">Sold</th>
-            <th class="num">Price</th><th class="num">Total Sales</th><th class="num">Unsold</th>
-            <th class="num">Sell-Through</th><th>Trend</th><th class="center">Actions</th>
+            <th class="num">Free</th><th class="num">Price</th><th class="num">Total Sales</th><th class="num">Unsold</th>
+            <th class="num">Sell-Through</th><th>Trend</th><th class="center owner-only">Actions</th>
           </tr></thead>
           <tbody id="salesBody"></tbody>
         </table>
@@ -356,7 +356,7 @@ hr.div{border:none; border-top:1px solid var(--line); margin:16px 0;}
           <p class="sub">Record all business costs — ingredients, utilities, packaging &amp; more</p>
         </div>
         <div class="topbar-actions">
-          <button class="btn btn-primary" id="btnAddExpense">&#43; Add Expense</button>
+          <button class="btn btn-primary owner-only" id="btnAddExpense">&#43; Add Expense</button>
         </div>
       </div>
       <div class="form-panel" id="expenseForm" style="display:none;"></div>
@@ -369,7 +369,7 @@ hr.div{border:none; border-top:1px solid var(--line); margin:16px 0;}
       <div class="two-col">
         <div class="table-wrap table-scroll">
           <table>
-            <thead><tr><th>Date</th><th>Item</th><th>Category</th><th class="num">Amount</th><th class="center">Actions</th></tr></thead>
+            <thead><tr><th>Date</th><th>Item</th><th>Category</th><th class="num">Amount</th><th class="center owner-only">Actions</th></tr></thead>
             <tbody id="expensesBody"></tbody>
           </table>
         </div>
@@ -388,7 +388,7 @@ hr.div{border:none; border-top:1px solid var(--line); margin:16px 0;}
           <p class="sub">Track monthly salary payments to all team members</p>
         </div>
         <div class="topbar-actions">
-          <button class="btn btn-primary" id="btnAddSalary">&#43; Add Payment</button>
+          <button class="btn btn-primary owner-only" id="btnAddSalary">&#43; Add Payment</button>
         </div>
       </div>
       <div class="form-panel" id="salaryForm" style="display:none;"></div>
@@ -400,7 +400,7 @@ hr.div{border:none; border-top:1px solid var(--line); margin:16px 0;}
       </div>
       <div class="table-wrap table-scroll">
         <table>
-          <thead><tr><th>Date</th><th>Staff Name</th><th>Role</th><th class="num">Amount</th><th>Status</th><th class="center">Actions</th></tr></thead>
+          <thead><tr><th>Date</th><th>Staff Name</th><th>Role</th><th class="num">Amount</th><th>Status</th><th class="center owner-only">Actions</th></tr></thead>
           <tbody id="salariesBody"></tbody>
         </table>
       </div>
@@ -414,7 +414,7 @@ hr.div{border:none; border-top:1px solid var(--line); margin:16px 0;}
           <p class="sub" id="investorSub">Auto-calculated from net profit</p>
         </div>
         <div class="topbar-actions">
-          <button class="btn btn-primary" id="btnAddPayment">&#43; Log Payment</button>
+          <button class="btn btn-primary owner-only" id="btnAddPayment">&#43; Log Payment</button>
         </div>
       </div>
       <div id="investorStats" class="grid-3"></div>
@@ -429,7 +429,7 @@ hr.div{border:none; border-top:1px solid var(--line); margin:16px 0;}
       <div class="section-title">Payment Log</div>
       <div class="table-wrap table-scroll">
         <table>
-          <thead><tr><th>Date</th><th>Investor</th><th>Period</th><th class="num">Amount</th><th>Method</th><th>Reference</th><th class="center">Actions</th></tr></thead>
+          <thead><tr><th>Date</th><th>Investor</th><th>Period</th><th class="num">Amount</th><th>Method</th><th>Reference</th><th class="center owner-only">Actions</th></tr></thead>
           <tbody id="paymentsBody"></tbody>
         </table>
       </div>
@@ -458,11 +458,31 @@ hr.div{border:none; border-top:1px solid var(--line); margin:16px 0;}
     <section class="page" id="page-settings" style="display:none;">
       <div class="topbar">
         <div>
-          <h1>Settings</h1>
-          <p class="sub">Manage bread types, categories, investors &amp; data</p>
+          <h1 id="settingsTitle">Settings</h1>
+          <p class="sub" id="settingsSub">Manage bread types, categories, investors &amp; data</p>
         </div>
       </div>
 
+      <div id="investorSettingsPanel" style="display:none;">
+        <div class="help-box" id="dataAsOfBanner" style="font-size:13px;"></div>
+        <div class="section-title" style="margin-top:0;">Load the Latest Update</div>
+        <div class="card">
+          <p class="inline-note">This is a view-only copy of the tracker — there's no way to add, edit or delete entries here. When the owner sends you an updated backup file, load it below to see the latest numbers.</p>
+          <div class="flex gap10 wrap mt10">
+            <button class="btn btn-primary" id="btnInvestorLoad">&#8593; Load Update File</button>
+            <input type="file" id="investorLoadFile" accept=".json" style="display:none;">
+          </div>
+        </div>
+        <div class="section-title">About This Business</div>
+        <div class="card">
+          <div class="form-row">
+            <div class="field"><label>Business Name</label><div id="investorBizName" style="padding:8px 0; font-weight:600;"></div></div>
+            <div class="field"><label>Currency</label><div id="investorBizCurrency" style="padding:8px 0; font-weight:600;"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="ownerSettingsPanel" class="owner-only">
       <div class="section-title" style="margin-top:0;">Business Details</div>
       <div class="card">
         <div class="form-row">
@@ -506,7 +526,7 @@ hr.div{border:none; border-top:1px solid var(--line); margin:16px 0;}
 
       <div class="section-title">Backup &amp; Restore</div>
       <div class="card">
-        <p class="inline-note">Download a full backup of all your data to your device. You can restore it anytime — on this computer or another one.</p>
+        <p class="inline-note">Download a full backup of all your data to your device. You can restore it anytime — on this computer or another one. This is also the file to send investors for their view-only app.</p>
         <div class="flex gap10 wrap mt10">
           <button class="btn btn-gold" id="btnBackup">&#11015; Download Backup (.json)</button>
           <button class="btn" id="btnRestoreBtn">&#8593; Restore from Backup</button>
@@ -523,6 +543,7 @@ hr.div{border:none; border-top:1px solid var(--line); margin:16px 0;}
         <div class="flex gap10 wrap mt10">
           <button class="btn btn-danger" id="btnResetAll">&#8635; Reset All Data</button>
         </div>
+      </div>
       </div>
     </section>
 
@@ -569,6 +590,11 @@ if(xr(e,"index.xml"))throw new Error("Unsupported NUMBERS 09 file");throw new Er
 "use strict";
 
 var STORAGE_KEY = "fgb_tracker_v1";
+/* BUILD_MODE is swapped to "investor" at build time for the investor-only
+   package (see build script). Never toggled at runtime — the investor
+   build genuinely has no code path that can add, edit or delete data. */
+var BUILD_MODE = "owner";
+var CAN_EDIT = (BUILD_MODE === "owner");
 var $ = function(sel, root){ return (root||document).querySelector(sel); };
 var $$ = function(sel, root){ return Array.prototype.slice.call((root||document).querySelectorAll(sel)); };
 
@@ -700,8 +726,9 @@ function monthLabel(key){
    Computations
    --------------------------------------------------------------------- */
 function saleTotal(s){ return num(s.qtySold) * num(s.price); }
-function saleUnsold(s){ return num(s.qtyBaked) - num(s.qtySold); }
-function saleSellThrough(s){ return num(s.qtyBaked)>0 ? num(s.qtySold)/num(s.qtyBaked) : null; }
+function saleFree(s){ return num(s.qtyFree); }
+function saleUnsold(s){ return num(s.qtyBaked) - num(s.qtySold) - num(s.qtyFree); }
+function saleSellThrough(s){ return num(s.qtyBaked)>0 ? (num(s.qtySold)+num(s.qtyFree))/num(s.qtyBaked) : null; }
 
 function totalSalesAmt(list){
   return (list||STORE.dailySales).reduce(function(a,s){ return a + saleTotal(s); }, 0);
@@ -721,6 +748,9 @@ function totalBakedUnits(list){
 function totalSoldUnits(list){
   return (list||STORE.dailySales).reduce(function(a,s){ return a + num(s.qtySold); }, 0);
 }
+function totalFreeUnits(list){
+  return (list||STORE.dailySales).reduce(function(a,s){ return a + num(s.qtyFree); }, 0);
+}
 
 function profitSummary(){
   var sales = totalSalesAmt();
@@ -729,8 +759,8 @@ function profitSummary(){
   var costs = expenses + salaries;
   var gross = sales - costs;
   var margin = sales>0 ? gross/sales : 0;
-  var baked = totalBakedUnits(), sold = totalSoldUnits();
-  var sellThrough = baked>0 ? sold/baked : 0;
+  var baked = totalBakedUnits(), sold = totalSoldUnits(), free = totalFreeUnits();
+  var sellThrough = baked>0 ? (sold+free)/baked : 0;
   var dist = STORE.distribution;
   var distributable = Math.max(gross, 0); // a loss isn't "distributed" — nothing to share out
   var investorPool = distributable * (num(dist.investors)/100);
@@ -738,7 +768,7 @@ function profitSummary(){
   var reserveFund = distributable * (num(dist.reserve)/100);
   return {
     sales: sales, expenses: expenses, salaries: salaries, totalCosts: costs,
-    grossProfit: gross, margin: margin, unsold: totalUnsoldUnits(), baked: baked, sold: sold,
+    grossProfit: gross, margin: margin, unsold: totalUnsoldUnits(), baked: baked, sold: sold, free: free,
     sellThrough: sellThrough, investorPool: investorPool, growthFund: growthFund, reserveFund: reserveFund
   };
 }
@@ -986,7 +1016,7 @@ function renderDashboard(){
       statCard("stat-cream","Investor Pool ("+STORE.distribution.investors+"%)", money(ps.investorPool), "shared per share %") +
       statCard("stat-cream","Growth Fund ("+STORE.distribution.growth+"%)", money(ps.growthFund), "reinvestment") +
       statCard("stat-cream","Reserve Fund ("+STORE.distribution.reserve+"%)", money(ps.reserveFund), "safety buffer") +
-      statCard("stat-cream","Sell-Through Rate", pct(ps.sellThrough), ps.unsold+" units unsold") +
+      statCard("stat-cream","Sell-Through Rate", pct(ps.sellThrough), ps.unsold+" unsold"+(ps.free>0 ? " · "+ps.free+" given free" : "")) +
     '</div>';
 
   var months = monthlyAggregate().slice(-8);
@@ -1001,7 +1031,7 @@ function renderDashboard(){
 
   // recent activity: merge last entries from all logs
   var acts = [];
-  STORE.dailySales.forEach(function(s){ acts.push({date:s.date, text:"Sold "+num(s.qtySold)+" "+esc(s.breadType)+" — "+money(saleTotal(s)), kind:"sale"}); });
+  STORE.dailySales.forEach(function(s){ acts.push({date:s.date, text:"Sold "+num(s.qtySold)+" "+esc(s.breadType)+(saleFree(s)>0 ? " (+"+saleFree(s)+" free)" : "")+" — "+money(saleTotal(s)), kind:"sale"}); });
   STORE.expenses.forEach(function(e){ acts.push({date:e.date, text:"Expense: "+esc(e.item)+" ("+esc(e.category)+") — "+money(e.amount), kind:"expense"}); });
   STORE.salaries.forEach(function(s){ acts.push({date:s.date, text:"Salary: "+esc(s.name)+" — "+money(s.amount)+" ("+esc(s.status)+")", kind:"salary"}); });
   acts.sort(function(a,b){ return (b.date||"").localeCompare(a.date||""); });
@@ -1054,10 +1084,10 @@ function renderSalesPage(){
   var maxTotal = Math.max.apply(null, rows.map(saleTotal).concat([1]));
   var body = $("#salesBody");
   if(!rows.length){
-    body.innerHTML = '<tr class="empty-row"><td colspan="10">No sales logged yet. Click "Add Entry" to record today\'s bread sales.</td></tr>';
+    body.innerHTML = '<tr class="empty-row"><td colspan="'+(CAN_EDIT?11:10)+'">No sales logged yet.'+(CAN_EDIT?' Click "Add Entry" to record today\'s bread sales.':'')+'</td></tr>';
   } else {
     body.innerHTML = rows.map(function(s){
-      var total = saleTotal(s), unsold = saleUnsold(s), st = saleSellThrough(s);
+      var total = saleTotal(s), unsold = saleUnsold(s), st = saleSellThrough(s), free = saleFree(s);
       var barW = Math.max(4, Math.round((total/maxTotal)*70));
       var stBadge = st===null ? '<span class="badge badge-gray">—</span>' : (st>=0.9 ? '<span class="badge badge-green">'+pct(st)+'</span>' : st>=0.6 ? '<span class="badge badge-gold">'+pct(st)+'</span>' : '<span class="badge badge-red">'+pct(st)+'</span>');
       return '<tr data-id="'+s.id+'">'+
@@ -1065,12 +1095,13 @@ function renderSalesPage(){
         '<td>'+esc(s.breadType)+'</td>'+
         '<td class="num">'+num(s.qtyBaked)+'</td>'+
         '<td class="num">'+num(s.qtySold)+'</td>'+
+        '<td class="num">'+(free>0 ? '<span class="tag-pill">+'+free+'</span>' : '—')+'</td>'+
         '<td class="num">'+money(s.price)+'</td>'+
         '<td class="num">'+money(total)+'</td>'+
         '<td class="num">'+unsold+'</td>'+
         '<td class="num">'+stBadge+'</td>'+
         '<td><span class="trend-bar" style="width:'+barW+'px;"></span></td>'+
-        '<td class="center"><button class="icon-btn edit-sale" title="Edit">&#9998;</button> <button class="icon-btn del-sale" title="Delete">&#128465;</button></td>'+
+        (CAN_EDIT ? '<td class="center"><button class="icon-btn edit-sale" title="Edit">&#9998;</button> <button class="icon-btn del-sale" title="Delete">&#128465;</button></td>' : '')+
         '</tr>';
     }).join("");
   }
@@ -1083,15 +1114,17 @@ function uniqueSorted(arr){
 }
 
 function saleFormHtml(existing){
-  var s = existing || { date: todayISO(), breadType: STORE.breadTypes[0]||"", qtyBaked:"", qtySold:"", price:"" };
+  var s = existing || { date: todayISO(), breadType: STORE.breadTypes[0]||"", qtyBaked:"", qtySold:"", qtyFree:"", price:"" };
   return '<h3>'+(existing?"Edit Entry":"Add Daily Sales Entry")+'</h3>'+
     '<div class="form-row">'+
       '<div class="field"><label>Date</label><input type="date" id="f_date" value="'+esc(s.date)+'"></div>'+
       '<div class="field"><label>Bread Type</label><select id="f_breadType">'+STORE.breadTypes.map(function(b){ return '<option'+(b===s.breadType?" selected":"")+'>'+esc(b)+'</option>'; }).join("")+'</select></div>'+
       '<div class="field"><label>Qty Baked</label><input type="number" min="0" id="f_qtyBaked" value="'+esc(s.qtyBaked)+'"></div>'+
-      '<div class="field"><label>Qty Sold</label><input type="number" min="0" id="f_qtySold" value="'+esc(s.qtySold)+'"></div>'+
+      '<div class="field"><label>Qty Sold (paid)</label><input type="number" min="0" id="f_qtySold" value="'+esc(s.qtySold)+'"></div>'+
+      '<div class="field"><label>Free / Bonus Qty</label><input type="number" min="0" id="f_qtyFree" value="'+esc(s.qtyFree)+'"></div>'+
       '<div class="field"><label>Price ('+STORE.meta.currency+')</label><input type="number" min="0" step="0.01" id="f_price" value="'+esc(s.price)+'"></div>'+
     '</div>'+
+    '<div class="inline-note">Free / Bonus Qty is for items given away with a bulk purchase (e.g. 2 free with 10 bought) — it doesn\'t add to revenue, but it does count as bread that left the shop, so your unsold total stays accurate.</div>'+
     '<div id="f_error" class="error-text"></div>'+
     '<div class="field-actions mt16">'+
       '<button class="btn btn-primary" id="f_save">'+(existing?"Save Changes":"Add Entry")+'</button>'+
@@ -1100,6 +1133,7 @@ function saleFormHtml(existing){
 }
 
 function toggleSaleForm(existing){
+  if(!CAN_EDIT) return;
   editingSaleId = existing ? existing.id : null;
   var panel = $("#saleForm");
   panel.innerHTML = saleFormHtml(existing);
@@ -1109,15 +1143,18 @@ function toggleSaleForm(existing){
     var breadType = $("#f_breadType", panel).value;
     var qtyBaked = parseFloat($("#f_qtyBaked", panel).value);
     var qtySold = parseFloat($("#f_qtySold", panel).value);
+    var qtyFreeRaw = $("#f_qtyFree", panel).value;
+    var qtyFree = qtyFreeRaw==="" ? 0 : parseFloat(qtyFreeRaw);
     var price = parseFloat($("#f_price", panel).value);
     var err = $("#f_error", panel);
     if(!date){ err.textContent = "Please choose a date."; return; }
     if(isNaN(qtyBaked) || qtyBaked<0){ err.textContent = "Qty Baked must be 0 or more."; return; }
     if(isNaN(qtySold) || qtySold<0){ err.textContent = "Qty Sold must be 0 or more."; return; }
+    if(isNaN(qtyFree) || qtyFree<0){ err.textContent = "Free / Bonus Qty must be 0 or more."; return; }
     if(isNaN(price) || price<0){ err.textContent = "Price must be 0 or more."; return; }
     err.textContent = "";
-    if(qtySold > qtyBaked){ err.textContent = "Note: Qty Sold is greater than Qty Baked — saved anyway, please double-check."; err.style.color = "#8a5a1e"; }
-    var rec = { id: editingSaleId || uid(), date:date, breadType:breadType, qtyBaked:qtyBaked, qtySold:qtySold, price:price };
+    if(qtySold + qtyFree > qtyBaked){ err.textContent = "Note: Qty Sold + Free/Bonus is greater than Qty Baked — saved anyway, please double-check."; err.style.color = "#8a5a1e"; }
+    var rec = { id: editingSaleId || uid(), date:date, breadType:breadType, qtyBaked:qtyBaked, qtySold:qtySold, qtyFree:qtyFree, price:price };
     if(editingSaleId){
       var idx = STORE.dailySales.findIndex(function(x){ return x.id===editingSaleId; });
       STORE.dailySales[idx] = rec;
@@ -1156,7 +1193,7 @@ function renderExpensesPage(){
 
   var body = $("#expensesBody");
   if(!rows.length){
-    body.innerHTML = '<tr class="empty-row"><td colspan="5">No expenses logged yet.</td></tr>';
+    body.innerHTML = '<tr class="empty-row"><td colspan="'+(CAN_EDIT?5:4)+'">No expenses logged yet.</td></tr>';
   } else {
     body.innerHTML = rows.map(function(e){
       return '<tr data-id="'+e.id+'">'+
@@ -1164,7 +1201,7 @@ function renderExpensesPage(){
         '<td>'+esc(e.item)+(e.notes?'<div class="muted" style="font-size:11px;">'+esc(e.notes)+'</div>':'')+'</td>'+
         '<td><span class="tag-pill">'+esc(e.category)+'</span></td>'+
         '<td class="num">'+money(e.amount)+'</td>'+
-        '<td class="center"><button class="icon-btn edit-exp" title="Edit">&#9998;</button> <button class="icon-btn del-exp" title="Delete">&#128465;</button></td>'+
+        (CAN_EDIT ? '<td class="center"><button class="icon-btn edit-exp" title="Edit">&#9998;</button> <button class="icon-btn del-exp" title="Delete">&#128465;</button></td>' : '')+
         '</tr>';
     }).join("");
   }
@@ -1189,6 +1226,7 @@ function expenseFormHtml(existing){
 }
 
 function toggleExpenseForm(existing){
+  if(!CAN_EDIT) return;
   editingExpenseId = existing ? existing.id : null;
   var panel = $("#expenseForm");
   panel.innerHTML = expenseFormHtml(existing);
@@ -1238,7 +1276,7 @@ function renderSalariesPage(){
 
   var body = $("#salariesBody");
   if(!rows.length){
-    body.innerHTML = '<tr class="empty-row"><td colspan="6">No salary payments logged yet.</td></tr>';
+    body.innerHTML = '<tr class="empty-row"><td colspan="'+(CAN_EDIT?6:5)+'">No salary payments logged yet.</td></tr>';
   } else {
     body.innerHTML = rows.map(function(s){
       var badge = s.status==="Paid" ? "badge-green" : (s.status==="Pending" ? "badge-red" : "badge-gold");
@@ -1248,7 +1286,7 @@ function renderSalariesPage(){
         '<td>'+esc(s.role)+'</td>'+
         '<td class="num">'+money(s.amount)+'</td>'+
         '<td><span class="badge '+badge+'">'+esc(s.status)+'</span></td>'+
-        '<td class="center"><button class="icon-btn edit-sal" title="Edit">&#9998;</button> <button class="icon-btn del-sal" title="Delete">&#128465;</button></td>'+
+        (CAN_EDIT ? '<td class="center"><button class="icon-btn edit-sal" title="Edit">&#9998;</button> <button class="icon-btn del-sal" title="Delete">&#128465;</button></td>' : '')+
         '</tr>';
     }).join("");
   }
@@ -1272,6 +1310,7 @@ function salaryFormHtml(existing){
 }
 
 function toggleSalaryForm(existing){
+  if(!CAN_EDIT) return;
   editingSalaryId = existing ? existing.id : null;
   var panel = $("#salaryForm");
   panel.innerHTML = salaryFormHtml(existing);
@@ -1329,7 +1368,7 @@ function renderInvestorsPage(){
   var payRows = STORE.investorPayments.slice().sort(function(a,b){ return (b.date||"").localeCompare(a.date||""); });
   var payBody = $("#paymentsBody");
   if(!payRows.length){
-    payBody.innerHTML = '<tr class="empty-row"><td colspan="7">No payments logged yet.</td></tr>';
+    payBody.innerHTML = '<tr class="empty-row"><td colspan="'+(CAN_EDIT?7:6)+'">No payments logged yet.</td></tr>';
   } else {
     payBody.innerHTML = payRows.map(function(p){
       var inv = STORE.investors.find(function(i){ return i.id===p.investorId; });
@@ -1340,7 +1379,7 @@ function renderInvestorsPage(){
         '<td class="num">'+money(p.amount)+'</td>'+
         '<td>'+esc(p.method)+'</td>'+
         '<td>'+esc(p.reference)+'</td>'+
-        '<td class="center"><button class="icon-btn edit-pay" title="Edit">&#9998;</button> <button class="icon-btn del-pay" title="Delete">&#128465;</button></td>'+
+        (CAN_EDIT ? '<td class="center"><button class="icon-btn edit-pay" title="Edit">&#9998;</button> <button class="icon-btn del-pay" title="Delete">&#128465;</button></td>' : '')+
         '</tr>';
     }).join("");
   }
@@ -1365,6 +1404,7 @@ function paymentFormHtml(existing){
 }
 
 function togglePaymentForm(existing){
+  if(!CAN_EDIT) return;
   if(!STORE.investors.length){ showToast("Add an investor in Settings first.", true); return; }
   editingPaymentId = existing ? existing.id : null;
   var panel = $("#paymentForm");
@@ -1411,9 +1451,12 @@ function renderMonthlyPage(){
    SETTINGS PAGE
    --------------------------------------------------------------------- */
 function renderSettingsPage(){
+  $("#brandName").textContent = STORE.meta.businessName;
+
+  if(!CAN_EDIT){ renderInvestorSettingsPage(); return; }
+
   $("#setBusinessName").value = STORE.meta.businessName;
   $("#setCurrency").value = STORE.meta.currency;
-  $("#brandName").textContent = STORE.meta.businessName;
 
   $("#breadTypeChips").innerHTML = STORE.breadTypes.map(function(b){
     var count = STORE.dailySales.filter(function(s){ return s.breadType===b; }).length;
@@ -1437,6 +1480,18 @@ function renderSettingsPage(){
       '</div>';
   }).join("") + '<div class="inline-note">Share % total: <strong>'+investorSharePercentSum()+'%</strong> (should equal 100%)</div>' +
     '<button class="btn btn-sm mt10" id="btnSaveInvestors">Save Investor Changes</button>';
+}
+
+function renderInvestorSettingsPage(){
+  $("#investorBizName").textContent = STORE.meta.businessName;
+  $("#investorBizCurrency").textContent = STORE.meta.currency;
+  var banner = $("#dataAsOfBanner");
+  if(STORE.meta.exportedAt){
+    var d = new Date(STORE.meta.exportedAt);
+    banner.innerHTML = "<strong>Data as of " + d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) + ", " + d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) + "</strong> — ask the owner for a fresh update file anytime.";
+  } else {
+    banner.innerHTML = "<strong>No data loaded yet.</strong> Tap \"Load Update File\" below and choose the backup file the owner sent you.";
+  }
 }
 
 /* ---------------------------------------------------------------------
@@ -1546,6 +1601,7 @@ function wireDashboard(){
 }
 
 function wireSettings(){
+  if(!CAN_EDIT){ wireInvestorSettings(); return; }
   $("#setBusinessName").addEventListener("input", debounce(function(){
     STORE.meta.businessName = $("#setBusinessName").value.trim() || "My Bakery";
     $("#brandName").textContent = STORE.meta.businessName;
@@ -1670,6 +1726,18 @@ function wireSettings(){
   });
 }
 
+/* Investor build: the only data-changing action available anywhere in this
+   build is loading a snapshot file the owner sent. Everything else on this
+   page is plain, read-only display. */
+function wireInvestorSettings(){
+  $("#btnInvestorLoad").addEventListener("click", function(){ $("#investorLoadFile").click(); });
+  $("#investorLoadFile").addEventListener("change", function(e){
+    var file = e.target.files[0];
+    if(file) importBackupJSON(file);
+    e.target.value = "";
+  });
+}
+
 function debounce(fn, ms){
   var t;
   return function(){
@@ -1691,6 +1759,8 @@ function downloadBlob(blob, filename){
 }
 
 function exportBackupJSON(){
+  STORE.meta.exportedAt = new Date().toISOString();
+  saveStore();
   var blob = new Blob([JSON.stringify(STORE, null, 2)], {type:"application/json"});
   var stamp = todayISO();
   downloadBlob(blob, "bakery-tracker-backup-" + stamp + ".json");
@@ -1730,10 +1800,10 @@ function exportExcelWorkbook(){
   }
 
   // Daily Sales
-  var salesAoa = [["Date","Bread Type","Qty Baked","Qty Sold","Price","Total Sales","Unsold","Sell-Through %"]];
+  var salesAoa = [["Date","Bread Type","Qty Baked","Qty Sold","Free/Bonus Qty","Price","Total Sales","Unsold","Sell-Through %"]];
   STORE.dailySales.slice().sort(function(a,b){return (a.date||"").localeCompare(b.date||"");}).forEach(function(s){
     var st = saleSellThrough(s);
-    salesAoa.push([s.date, s.breadType, num(s.qtyBaked), num(s.qtySold), num(s.price), saleTotal(s), saleUnsold(s), st===null?"":Math.round(st*1000)/1000]);
+    salesAoa.push([s.date, s.breadType, num(s.qtyBaked), num(s.qtySold), num(s.qtyFree), num(s.price), saleTotal(s), saleUnsold(s), st===null?"":Math.round(st*1000)/1000]);
   });
   addSheet("Daily Sales", salesAoa);
 
@@ -1818,7 +1888,7 @@ function importExcelWorkbook(file){
           if(!date) return;
           var bt = String(r["Bread Type"]||"").trim();
           if(bt && STORE.breadTypes.indexOf(bt)===-1) STORE.breadTypes.push(bt);
-          STORE.dailySales.push({ id:uid(), date:date, breadType:bt, qtyBaked:Number(r["Qty Baked"])||0, qtySold:Number(r["Qty Sold"])||0, price:Number(r["Price"])||0 });
+          STORE.dailySales.push({ id:uid(), date:date, breadType:bt, qtyBaked:Number(r["Qty Baked"])||0, qtySold:Number(r["Qty Sold"])||0, qtyFree:Number(r["Free/Bonus Qty"])||0, price:Number(r["Price"])||0 });
           added++;
         });
         sheetRows("Expenses").forEach(function(r){
@@ -1867,12 +1937,22 @@ function normalizeDate(v){
    --------------------------------------------------------------------- */
 function init(){
   STORE = loadStore();
+  applyBuildMode();
   wireNav(); wireModal();
   wireDashboard(); wireSalesPage(); wireExpensesPage(); wireSalariesPage();
   wireInvestorsPage(); wireMonthlyPage(); wireSettings();
   $("#brandName").textContent = STORE.meta.businessName;
   goToPage("dashboard");
   saveStore(true);
+}
+
+function applyBuildMode(){
+  if(CAN_EDIT) return;
+  $$(".owner-only").forEach(function(el){ el.style.display = "none"; });
+  var tag = $("#brandTag"); if(tag) tag.textContent = "Investor View";
+  var st = $("#settingsTitle"); if(st) st.textContent = "About & Updates";
+  var ss = $("#settingsSub"); if(ss) ss.textContent = "View-only — load an update file from the owner";
+  $("#investorSettingsPanel").style.display = "block";
 }
 
 if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", init);
