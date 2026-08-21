@@ -273,6 +273,7 @@ hr.div{border:none; border-top:1px solid var(--line); margin:16px 0;}
       <li><button data-page="sales"><span class="ico">&#127838;</span> Daily Sales</button></li>
       <li><button data-page="expenses"><span class="ico">&#128176;</span> Expenses</button></li>
       <li><button data-page="salaries"><span class="ico">&#128101;</span> Salaries</button></li>
+      <li><button data-page="equipment"><span class="ico">&#128295;</span> Equipment</button></li>
       <li><button data-page="investors"><span class="ico">&#127974;</span> Investors</button></li>
       <li><button data-page="monthly"><span class="ico">&#128197;</span> Monthly Summary</button></li>
       <li><button data-page="settings"><span class="ico">&#9881;</span> Settings</button></li>
@@ -406,6 +407,33 @@ hr.div{border:none; border-top:1px solid var(--line); margin:16px 0;}
       </div>
     </section>
 
+    <!-- ===================== EQUIPMENT & TOOLS ===================== -->
+    <section class="page" id="page-equipment" style="display:none;">
+      <div class="topbar">
+        <div>
+          <h1>Equipment &amp; Tools</h1>
+          <p class="sub">Keep a record of tools and equipment the bakery has purchased</p>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-primary owner-only" id="btnAddEquipment">&#43; Add Equipment</button>
+        </div>
+      </div>
+      <div class="form-panel" id="equipmentForm" style="display:none;"></div>
+      <div class="filter-bar">
+        <select id="eqFilterMonth"></select>
+        <select id="eqFilterCat"></select>
+        <select id="eqFilterStatus"></select>
+        <span class="spacer"></span>
+        <span class="muted" id="eqCount" style="font-size:12px;"></span>
+      </div>
+      <div class="table-wrap table-scroll">
+        <table>
+          <thead><tr><th>Date</th><th>Item</th><th>Category</th><th class="num">Cost</th><th>Status</th><th class="center owner-only">Actions</th></tr></thead>
+          <tbody id="equipmentBody"></tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- ===================== INVESTORS ===================== -->
     <section class="page" id="page-investors" style="display:none;">
       <div class="topbar">
@@ -448,7 +476,7 @@ hr.div{border:none; border-top:1px solid var(--line); margin:16px 0;}
       </div>
       <div class="table-wrap table-scroll">
         <table>
-          <thead><tr><th>Month</th><th class="num">Total Sales</th><th class="num">Expenses</th><th class="num">Salaries</th><th class="num">Net Profit</th><th class="num">Margin</th></tr></thead>
+          <thead><tr><th>Month</th><th class="num">Total Sales</th><th class="num">Expenses</th><th class="num">Salaries</th><th class="num">Equipment</th><th class="num">Net Profit</th><th class="num">Margin</th></tr></thead>
           <tbody id="monthlyBody"></tbody>
         </table>
       </div>
@@ -504,8 +532,17 @@ hr.div{border:none; border-top:1px solid var(--line); margin:16px 0;}
       <div class="card">
         <div class="chip-list" id="expenseCatChips"></div>
         <div class="form-row" style="grid-template-columns:1fr auto;">
-          <div class="field"><input type="text" id="newExpenseCat" placeholder="e.g. Equipment"></div>
+          <div class="field"><input type="text" id="newExpenseCat" placeholder="e.g. Insurance"></div>
           <button class="btn btn-primary" id="btnAddExpenseCat">&#43; Add Category</button>
+        </div>
+      </div>
+
+      <div class="section-title">Equipment Categories <span class="hint">Used in Equipment &amp; Tools entries</span></div>
+      <div class="card">
+        <div class="chip-list" id="equipmentCatChips"></div>
+        <div class="form-row" style="grid-template-columns:1fr auto;">
+          <div class="field"><input type="text" id="newEquipmentCat" placeholder="e.g. Refrigeration"></div>
+          <button class="btn btn-primary" id="btnAddEquipmentCat">&#43; Add Category</button>
         </div>
       </div>
 
@@ -607,6 +644,8 @@ function defaultStore(){
     meta: { businessName: "The Five Grains Bakery", currency: "GHS" },
     breadTypes: ["Butter Bread","Sugar Bread","Tea Bread","Wheat Bread","Other Baked Foods"],
     expenseCategories: ["Ingredients","Utilities","Packaging","Transport","Maintenance","Marketing","Other"],
+    equipmentCategories: ["Baking Equipment","Utensils & Tools","Furniture & Fixtures","Packaging Machinery","Electronics","Other"],
+    equipmentStatuses: ["In Use","Needs Repair","Retired / Disposed"],
     salaryStatuses: ["Paid","Pending","Partial"],
     paymentMethods: ["Mobile Money","Bank Transfer","Cash","Cheque","Other"],
     distribution: { investors: 60, growth: 30, reserve: 10 },
@@ -620,6 +659,7 @@ function defaultStore(){
     dailySales: [],
     expenses: [],
     salaries: [],
+    equipment: [],
     investorPayments: []
   };
 }
@@ -656,9 +696,12 @@ function mergeWithDefaults(parsed){
   if(!Array.isArray(out.dailySales)) out.dailySales = [];
   if(!Array.isArray(out.expenses)) out.expenses = [];
   if(!Array.isArray(out.salaries)) out.salaries = [];
+  if(!Array.isArray(out.equipment)) out.equipment = [];
   if(!Array.isArray(out.investorPayments)) out.investorPayments = [];
   if(!Array.isArray(out.salaryStatuses) || !out.salaryStatuses.length) out.salaryStatuses = d.salaryStatuses;
   if(!Array.isArray(out.paymentMethods) || !out.paymentMethods.length) out.paymentMethods = d.paymentMethods;
+  if(!Array.isArray(out.equipmentCategories) || !out.equipmentCategories.length) out.equipmentCategories = d.equipmentCategories;
+  if(!Array.isArray(out.equipmentStatuses) || !out.equipmentStatuses.length) out.equipmentStatuses = d.equipmentStatuses;
   return out;
 }
 
@@ -739,6 +782,9 @@ function totalExpensesAmt(list){
 function totalSalariesAmt(list){
   return (list||STORE.salaries).reduce(function(a,s){ return a + num(s.amount); }, 0);
 }
+function totalEquipmentAmt(list){
+  return (list||STORE.equipment).reduce(function(a,e){ return a + num(e.cost); }, 0);
+}
 function totalUnsoldUnits(list){
   return (list||STORE.dailySales).reduce(function(a,s){ return a + saleUnsold(s); }, 0);
 }
@@ -756,7 +802,8 @@ function profitSummary(){
   var sales = totalSalesAmt();
   var expenses = totalExpensesAmt();
   var salaries = totalSalariesAmt();
-  var costs = expenses + salaries;
+  var equipment = totalEquipmentAmt();
+  var costs = expenses + salaries + equipment;
   var gross = sales - costs;
   var margin = sales>0 ? gross/sales : 0;
   var baked = totalBakedUnits(), sold = totalSoldUnits(), free = totalFreeUnits();
@@ -767,7 +814,7 @@ function profitSummary(){
   var growthFund = distributable * (num(dist.growth)/100);
   var reserveFund = distributable * (num(dist.reserve)/100);
   return {
-    sales: sales, expenses: expenses, salaries: salaries, totalCosts: costs,
+    sales: sales, expenses: expenses, salaries: salaries, equipment: equipment, totalCosts: costs,
     grossProfit: gross, margin: margin, unsold: totalUnsoldUnits(), baked: baked, sold: sold, free: free,
     sellThrough: sellThrough, investorPool: investorPool, growthFund: growthFund, reserveFund: reserveFund
   };
@@ -799,7 +846,7 @@ function investorBreakdown(){
 function monthlyAggregate(){
   var map = {};
   function ensure(key){
-    if(!map[key]) map[key] = { key:key, sales:0, expenses:0, salaries:0 };
+    if(!map[key]) map[key] = { key:key, sales:0, expenses:0, salaries:0, equipment:0 };
     return map[key];
   }
   STORE.dailySales.forEach(function(s){
@@ -814,12 +861,16 @@ function monthlyAggregate(){
     if(!s.date) return;
     ensure(monthKey(s.date)).salaries += num(s.amount);
   });
+  STORE.equipment.forEach(function(e){
+    if(!e.date) return;
+    ensure(monthKey(e.date)).equipment += num(e.cost);
+  });
   var keys = Object.keys(map).sort();
   return keys.map(function(k){
     var m = map[k];
-    var profit = m.sales - m.expenses - m.salaries;
+    var profit = m.sales - m.expenses - m.salaries - m.equipment;
     var margin = m.sales>0 ? profit/m.sales : null;
-    return { key:k, label: monthLabel(k), sales:m.sales, expenses:m.expenses, salaries:m.salaries, profit:profit, margin:margin };
+    return { key:k, label: monthLabel(k), sales:m.sales, expenses:m.expenses, salaries:m.salaries, equipment:m.equipment, profit:profit, margin:margin };
   });
 }
 
@@ -882,7 +933,7 @@ function confirmDialog(message, onConfirm, confirmLabel, confirmCls){
    --------------------------------------------------------------------- */
 var PAGE_TITLES = {
   dashboard:"Dashboard", sales:"Daily Sales", expenses:"Expenses", salaries:"Salaries",
-  investors:"Investors", monthly:"Monthly Summary", settings:"Settings"
+  equipment:"Equipment", investors:"Investors", monthly:"Monthly Summary", settings:"Settings"
 };
 var currentPage = "dashboard";
 
@@ -904,6 +955,7 @@ function renderPage(page){
   else if(page==="sales") renderSalesPage();
   else if(page==="expenses") renderExpensesPage();
   else if(page==="salaries") renderSalariesPage();
+  else if(page==="equipment") renderEquipmentPage();
   else if(page==="investors") renderInvestorsPage();
   else if(page==="monthly") renderMonthlyPage();
   else if(page==="settings") renderSettingsPage();
@@ -920,11 +972,11 @@ function closeFormPanel(panel){
   panel.innerHTML = "";
 }
 function closeAllFormPanels(){
-  ["#saleForm","#expenseForm","#salaryForm","#paymentForm"].forEach(function(sel){
+  ["#saleForm","#expenseForm","#salaryForm","#equipmentForm","#paymentForm"].forEach(function(sel){
     var p = $(sel);
     if(p) closeFormPanel(p);
   });
-  editingSaleId = null; editingExpenseId = null; editingSalaryId = null; editingPaymentId = null;
+  editingSaleId = null; editingExpenseId = null; editingSalaryId = null; editingEquipmentId = null; editingPaymentId = null;
 }
 
 /* ---------------------------------------------------------------------
@@ -1006,7 +1058,7 @@ function renderDashboard(){
   $("#dashStats").innerHTML =
     '<div class="grid-4">'+
       statCard("stat-dark","Total Sales", money(ps.sales), "GHS revenue") +
-      statCard("stat-cream","Total Expenses", money(ps.totalCosts), "Expenses + salaries") +
+      statCard("stat-cream","Total Expenses", money(ps.totalCosts), "Expenses + salaries + equipment") +
       statCard("stat-orange","Net Profit", money(ps.grossProfit), "Sales minus costs") +
       statCard("stat-green","Profit Margin", pct(ps.margin), "of revenue") +
     '</div>';
@@ -1034,6 +1086,7 @@ function renderDashboard(){
   STORE.dailySales.forEach(function(s){ acts.push({date:s.date, text:"Sold "+num(s.qtySold)+" "+esc(s.breadType)+(saleFree(s)>0 ? " (+"+saleFree(s)+" free)" : "")+" — "+money(saleTotal(s)), kind:"sale"}); });
   STORE.expenses.forEach(function(e){ acts.push({date:e.date, text:"Expense: "+esc(e.item)+" ("+esc(e.category)+") — "+money(e.amount), kind:"expense"}); });
   STORE.salaries.forEach(function(s){ acts.push({date:s.date, text:"Salary: "+esc(s.name)+" — "+money(s.amount)+" ("+esc(s.status)+")", kind:"salary"}); });
+  STORE.equipment.forEach(function(e){ acts.push({date:e.date, text:"Equipment: "+esc(e.item)+" ("+esc(e.category)+") — "+money(e.cost), kind:"equipment"}); });
   acts.sort(function(a,b){ return (b.date||"").localeCompare(a.date||""); });
   acts = acts.slice(0,8);
   if(!acts.length){
@@ -1041,7 +1094,7 @@ function renderDashboard(){
   } else {
     $("#recentActivity").innerHTML = '<div class="table-wrap"><table><tbody>' +
       acts.map(function(a){
-        var badge = a.kind==="sale" ? "badge-green" : (a.kind==="expense" ? "badge-red" : "badge-gold");
+        var badge = a.kind==="sale" ? "badge-green" : (a.kind==="expense" ? "badge-red" : (a.kind==="equipment" ? "badge-gray" : "badge-gold"));
         return '<tr><td style="width:110px;" class="muted">'+fmtDateLabel(a.date)+'</td><td>'+a.text+'</td><td class="right"><span class="badge '+badge+'">'+a.kind+'</span></td></tr>';
       }).join("") + '</tbody></table></div>';
   }
@@ -1338,6 +1391,96 @@ function toggleSalaryForm(existing){
 }
 
 /* ---------------------------------------------------------------------
+   EQUIPMENT & TOOLS PAGE
+   --------------------------------------------------------------------- */
+var editingEquipmentId = null;
+
+function renderEquipmentPage(){
+  var monthSel = $("#eqFilterMonth");
+  var months = uniqueSorted(STORE.equipment.map(function(e){ return monthKey(e.date); })).reverse();
+  fillSelect(monthSel, [{value:"",label:"All months"}].concat(months.map(function(m){ return {value:m,label:monthLabel(m)}; })), monthSel.value);
+  var catSel = $("#eqFilterCat");
+  fillSelect(catSel, [{value:"",label:"All categories"}].concat(STORE.equipmentCategories), catSel.value);
+  var statSel = $("#eqFilterStatus");
+  fillSelect(statSel, [{value:"",label:"All statuses"}].concat(STORE.equipmentStatuses), statSel.value);
+
+  var mVal = monthSel.value, cVal = catSel.value, stVal = statSel.value;
+  var rows = STORE.equipment.filter(function(e){
+    if(mVal && monthKey(e.date)!==mVal) return false;
+    if(cVal && e.category!==cVal) return false;
+    if(stVal && e.status!==stVal) return false;
+    return true;
+  }).sort(function(a,b){ return (b.date||"").localeCompare(a.date||""); });
+
+  $("#eqCount").textContent = rows.length + " item" + (rows.length===1?"":"s") + " · " + money(totalEquipmentAmt(rows)) + " total invested";
+
+  var body = $("#equipmentBody");
+  if(!rows.length){
+    body.innerHTML = '<tr class="empty-row"><td colspan="'+(CAN_EDIT?6:5)+'">No equipment logged yet.</td></tr>';
+  } else {
+    body.innerHTML = rows.map(function(e){
+      var badge = e.status==="In Use" ? "badge-green" : (e.status==="Needs Repair" ? "badge-gold" : "badge-gray");
+      return '<tr data-id="'+e.id+'">'+
+        '<td>'+fmtDateLabel(e.date)+'</td>'+
+        '<td>'+esc(e.item)+(e.supplier?'<div class="muted" style="font-size:11px;">From '+esc(e.supplier)+'</div>':'')+(e.notes?'<div class="muted" style="font-size:11px;">'+esc(e.notes)+'</div>':'')+'</td>'+
+        '<td><span class="tag-pill">'+esc(e.category)+'</span></td>'+
+        '<td class="num">'+money(e.cost)+'</td>'+
+        '<td><span class="badge '+badge+'">'+esc(e.status)+'</span></td>'+
+        (CAN_EDIT ? '<td class="center"><button class="icon-btn edit-eq" title="Edit">&#9998;</button> <button class="icon-btn del-eq" title="Delete">&#128465;</button></td>' : '')+
+        '</tr>';
+    }).join("");
+  }
+}
+
+function equipmentFormHtml(existing){
+  var e = existing || { date: todayISO(), item:"", category: STORE.equipmentCategories[0]||"", cost:"", supplier:"", status: STORE.equipmentStatuses[0]||"In Use", notes:"" };
+  return '<h3>'+(existing?"Edit Equipment":"Add Equipment / Tool")+'</h3>'+
+    '<div class="form-row">'+
+      '<div class="field"><label>Date Purchased</label><input type="date" id="f_date" value="'+esc(e.date)+'"></div>'+
+      '<div class="field"><label>Item / Tool Name</label><input type="text" id="f_item" placeholder="e.g. Industrial Mixer" value="'+esc(e.item)+'"></div>'+
+      '<div class="field"><label>Category</label><select id="f_category">'+STORE.equipmentCategories.map(function(c){ return '<option'+(c===e.category?" selected":"")+'>'+esc(c)+'</option>'; }).join("")+'</select></div>'+
+      '<div class="field"><label>Cost ('+STORE.meta.currency+')</label><input type="number" min="0" step="0.01" id="f_cost" value="'+esc(e.cost)+'"></div>'+
+      '<div class="field"><label>Supplier (optional)</label><input type="text" id="f_supplier" value="'+esc(e.supplier)+'"></div>'+
+      '<div class="field"><label>Status</label><select id="f_status">'+STORE.equipmentStatuses.map(function(x){ return '<option'+(x===e.status?" selected":"")+'>'+esc(x)+'</option>'; }).join("")+'</select></div>'+
+    '</div>'+
+    '<div class="field mt10"><label>Notes (optional)</label><textarea id="f_notes">'+esc(e.notes)+'</textarea></div>'+
+    '<div id="f_error" class="error-text"></div>'+
+    '<div class="field-actions mt16">'+
+      '<button class="btn btn-primary" id="f_save">'+(existing?"Save Changes":"Add Equipment")+'</button>'+
+      '<button class="btn" id="f_cancel">Cancel</button>'+
+    '</div>';
+}
+
+function toggleEquipmentForm(existing){
+  if(!CAN_EDIT) return;
+  editingEquipmentId = existing ? existing.id : null;
+  var panel = $("#equipmentForm");
+  panel.innerHTML = equipmentFormHtml(existing);
+  panel.style.display = "block";
+  $("#f_save", panel).onclick = function(){
+    var date = $("#f_date", panel).value, item = $("#f_item", panel).value.trim(), category = $("#f_category", panel).value;
+    var cost = parseFloat($("#f_cost", panel).value), supplier = $("#f_supplier", panel).value.trim();
+    var status = $("#f_status", panel).value, notes = $("#f_notes", panel).value.trim();
+    var err = $("#f_error", panel);
+    if(!date){ err.textContent = "Please choose a date."; return; }
+    if(!item){ err.textContent = "Please enter the item or tool name."; return; }
+    if(isNaN(cost) || cost<0){ err.textContent = "Cost must be 0 or more."; return; }
+    err.textContent = "";
+    var rec = { id: editingEquipmentId||uid(), date:date, item:item, category:category, cost:cost, supplier:supplier, status:status, notes:notes };
+    if(editingEquipmentId){
+      var idx = STORE.equipment.findIndex(function(x){ return x.id===editingEquipmentId; });
+      STORE.equipment[idx] = rec;
+    } else { STORE.equipment.push(rec); }
+    saveStore();
+    closeFormPanel(panel);
+    renderEquipmentPage();
+    showToast(editingEquipmentId ? "Equipment updated." : "Equipment added.");
+    editingEquipmentId = null;
+  };
+  $("#f_cancel", panel).onclick = function(){ closeFormPanel(panel); editingEquipmentId=null; };
+}
+
+/* ---------------------------------------------------------------------
    INVESTORS PAGE
    --------------------------------------------------------------------- */
 var editingPaymentId = null;
@@ -1438,13 +1581,13 @@ function renderMonthlyPage(){
   var months = monthlyAggregate();
   var body = $("#monthlyBody");
   if(!months.length){
-    body.innerHTML = '<tr class="empty-row"><td colspan="6">No data yet. Once you log sales, expenses or salaries, monthly totals will appear here automatically.</td></tr>';
+    body.innerHTML = '<tr class="empty-row"><td colspan="7">No data yet. Once you log sales, expenses, salaries or equipment, monthly totals will appear here automatically.</td></tr>';
     return;
   }
-  var totals = months.reduce(function(a,m){ a.sales+=m.sales; a.expenses+=m.expenses; a.salaries+=m.salaries; a.profit+=m.profit; return a; }, {sales:0,expenses:0,salaries:0,profit:0});
+  var totals = months.reduce(function(a,m){ a.sales+=m.sales; a.expenses+=m.expenses; a.salaries+=m.salaries; a.equipment+=m.equipment; a.profit+=m.profit; return a; }, {sales:0,expenses:0,salaries:0,equipment:0,profit:0});
   body.innerHTML = months.map(function(m){
-    return '<tr><td>'+esc(m.label)+'</td><td class="num">'+money(m.sales)+'</td><td class="num">'+money(m.expenses)+'</td><td class="num">'+money(m.salaries)+'</td><td class="num">'+money(m.profit)+'</td><td class="num">'+pct(m.margin)+'</td></tr>';
-  }).join("") + '<tr class="total-row"><td>TOTAL</td><td class="num">'+money(totals.sales)+'</td><td class="num">'+money(totals.expenses)+'</td><td class="num">'+money(totals.salaries)+'</td><td class="num">'+money(totals.profit)+'</td><td class="num">'+pct(totals.sales>0?totals.profit/totals.sales:0)+'</td></tr>';
+    return '<tr><td>'+esc(m.label)+'</td><td class="num">'+money(m.sales)+'</td><td class="num">'+money(m.expenses)+'</td><td class="num">'+money(m.salaries)+'</td><td class="num">'+money(m.equipment)+'</td><td class="num">'+money(m.profit)+'</td><td class="num">'+pct(m.margin)+'</td></tr>';
+  }).join("") + '<tr class="total-row"><td>TOTAL</td><td class="num">'+money(totals.sales)+'</td><td class="num">'+money(totals.expenses)+'</td><td class="num">'+money(totals.salaries)+'</td><td class="num">'+money(totals.equipment)+'</td><td class="num">'+money(totals.profit)+'</td><td class="num">'+pct(totals.sales>0?totals.profit/totals.sales:0)+'</td></tr>';
 }
 
 /* ---------------------------------------------------------------------
@@ -1466,6 +1609,11 @@ function renderSettingsPage(){
   $("#expenseCatChips").innerHTML = STORE.expenseCategories.map(function(c){
     var count = STORE.expenses.filter(function(e){ return e.category===c; }).length;
     return '<span class="chip">'+esc(c)+' <span class="count">'+count+'</span><button data-kind="cat" data-val="'+esc(c)+'" title="Remove">&#10005;</button></span>';
+  }).join("") || '<span class="muted" style="font-size:12.5px;">No categories yet.</span>';
+
+  $("#equipmentCatChips").innerHTML = STORE.equipmentCategories.map(function(c){
+    var count = STORE.equipment.filter(function(e){ return e.category===c; }).length;
+    return '<span class="chip">'+esc(c)+' <span class="count">'+count+'</span><button data-kind="eqcat" data-val="'+esc(c)+'" title="Remove">&#10005;</button></span>';
   }).join("") || '<span class="muted" style="font-size:12.5px;">No categories yet.</span>';
 
   $("#distInvestors").value = STORE.distribution.investors;
@@ -1574,6 +1722,26 @@ function wireSalariesPage(){
   });
 }
 
+function wireEquipmentPage(){
+  $("#btnAddEquipment").addEventListener("click", function(){ toggleEquipmentForm(null); });
+  $("#eqFilterMonth").addEventListener("change", renderEquipmentPage);
+  $("#eqFilterCat").addEventListener("change", renderEquipmentPage);
+  $("#eqFilterStatus").addEventListener("change", renderEquipmentPage);
+  $("#equipmentBody").addEventListener("click", function(e){
+    var tr = e.target.closest("tr[data-id]");
+    if(!tr) return;
+    var id = tr.dataset.id;
+    var rec = STORE.equipment.find(function(x){ return x.id===id; });
+    if(e.target.classList.contains("edit-eq")){ toggleEquipmentForm(rec); }
+    else if(e.target.classList.contains("del-eq")){
+      confirmDialog("Delete equipment record for \""+rec.item+"\"?", function(){
+        STORE.equipment = STORE.equipment.filter(function(x){ return x.id!==id; });
+        saveStore(); renderEquipmentPage(); showToast("Equipment record deleted.");
+      });
+    }
+  });
+}
+
 function wireInvestorsPage(){
   $("#btnAddPayment").addEventListener("click", function(){ togglePaymentForm(null); });
   $("#paymentsBody").addEventListener("click", function(e){
@@ -1656,6 +1824,29 @@ function wireSettings(){
     };
     if(count>0){
       confirmDialog("\""+val+"\" is used in "+count+" expense"+(count===1?"":"s")+". Removing it won't delete those entries. Continue?", doRemove);
+    } else { doRemove(); }
+  });
+
+  $("#btnAddEquipmentCat").addEventListener("click", function(){
+    var v = $("#newEquipmentCat").value.trim();
+    if(!v){ return; }
+    if(STORE.equipmentCategories.indexOf(v)>-1){ showToast("That category already exists.", true); return; }
+    STORE.equipmentCategories.push(v);
+    $("#newEquipmentCat").value = "";
+    saveStore(); renderSettingsPage();
+    showToast("Category added.");
+  });
+  $("#equipmentCatChips").addEventListener("click", function(e){
+    if(e.target.tagName!=="BUTTON") return;
+    var val = e.target.dataset.val;
+    var count = STORE.equipment.filter(function(x){ return x.category===val; }).length;
+    var doRemove = function(){
+      STORE.equipmentCategories = STORE.equipmentCategories.filter(function(c){ return c!==val; });
+      saveStore(); renderSettingsPage();
+      showToast("Category removed.");
+    };
+    if(count>0){
+      confirmDialog("\""+val+"\" is used in "+count+" equipment item"+(count===1?"":"s")+". Removing it won't delete those entries. Continue?", doRemove);
     } else { doRemove(); }
   });
 
@@ -1821,6 +2012,13 @@ function exportExcelWorkbook(){
   });
   addSheet("Salaries", salAoa);
 
+  // Equipment & Tools
+  var eqAoa = [["Date","Item","Category","Cost","Supplier","Status","Notes"]];
+  STORE.equipment.slice().sort(function(a,b){return (a.date||"").localeCompare(b.date||"");}).forEach(function(e){
+    eqAoa.push([e.date, e.item, e.category, num(e.cost), e.supplier||"", e.status, e.notes||""]);
+  });
+  addSheet("Equipment", eqAoa);
+
   // Profit Summary
   var ps = profitSummary();
   addSheet("Profit Summary", [
@@ -1829,6 +2027,7 @@ function exportExcelWorkbook(){
     ["Total Sales", ps.sales],
     ["Total Expenses", ps.expenses],
     ["Total Salaries", ps.salaries],
+    ["Total Equipment & Tools", ps.equipment],
     ["Total Costs", ps.totalCosts],
     ["Gross Profit", ps.grossProfit],
     ["Profit Margin", Math.round(ps.margin*1000)/1000],
@@ -1859,9 +2058,9 @@ function exportExcelWorkbook(){
   addSheet("Investor Payments", payAoa);
 
   // Monthly Summary
-  var monAoa = [["Month","Total Sales","Total Expenses","Salaries","Net Profit","Profit Margin"]];
+  var monAoa = [["Month","Total Sales","Total Expenses","Salaries","Equipment","Net Profit","Profit Margin"]];
   monthlyAggregate().forEach(function(m){
-    monAoa.push([m.label, Math.round(m.sales*100)/100, Math.round(m.expenses*100)/100, Math.round(m.salaries*100)/100, Math.round(m.profit*100)/100, m.margin===null?"":Math.round(m.margin*1000)/1000]);
+    monAoa.push([m.label, Math.round(m.sales*100)/100, Math.round(m.expenses*100)/100, Math.round(m.salaries*100)/100, Math.round(m.equipment*100)/100, Math.round(m.profit*100)/100, m.margin===null?"":Math.round(m.margin*1000)/1000]);
   });
   addSheet("Monthly Summary", monAoa);
 
@@ -1905,6 +2104,14 @@ function importExcelWorkbook(file){
           STORE.salaries.push({ id:uid(), date:date, name:String(r["Staff Name"]||""), role:String(r["Role"]||""), amount:Number(r["Amount"])||0, status:String(r["Payment Status"]||"Pending") });
           added++;
         });
+        sheetRows("Equipment").forEach(function(r){
+          var date = normalizeDate(r["Date"]);
+          if(!date) return;
+          var cat = String(r["Category"]||"Other").trim();
+          if(cat && STORE.equipmentCategories.indexOf(cat)===-1) STORE.equipmentCategories.push(cat);
+          STORE.equipment.push({ id:uid(), date:date, item:String(r["Item"]||""), category:cat, cost:Number(r["Cost"])||0, supplier:String(r["Supplier"]||""), status:String(r["Status"]||STORE.equipmentStatuses[0]), notes:String(r["Notes"]||"") });
+          added++;
+        });
         saveStore(true);
         renderAll(); renderSettingsPage();
         showToast(added + " row(s) imported from Excel.");
@@ -1939,7 +2146,7 @@ function init(){
   STORE = loadStore();
   applyBuildMode();
   wireNav(); wireModal();
-  wireDashboard(); wireSalesPage(); wireExpensesPage(); wireSalariesPage();
+  wireDashboard(); wireSalesPage(); wireExpensesPage(); wireSalariesPage(); wireEquipmentPage();
   wireInvestorsPage(); wireMonthlyPage(); wireSettings();
   $("#brandName").textContent = STORE.meta.businessName;
   goToPage("dashboard");
