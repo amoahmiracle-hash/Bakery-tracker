@@ -6,7 +6,7 @@
    genuinely offline). This means updates show up on the very next open,
    not "the open after that". Bump CACHE_NAME on every release so the
    activate step clears out anything from the previous version. */
-const CACHE_NAME = "fgb-tracker-v2";
+const CACHE_NAME = "fgb-tracker-v4";
 const ASSETS = [
   "./",
   "./index.html",

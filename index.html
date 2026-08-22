@@ -445,11 +445,11 @@ hr.div{border:none; border-top:1px solid var(--line); margin:16px 0;}
           <button class="btn btn-primary owner-only" id="btnAddPayment">&#43; Log Payment</button>
         </div>
       </div>
-      <div id="investorStats" class="grid-3"></div>
+      <div id="investorStats" class="grid-4"></div>
       <div class="section-title">Individual Breakdown</div>
       <div class="table-wrap table-scroll">
         <table>
-          <thead><tr><th>#</th><th>Investor</th><th class="num">Share %</th><th class="num">Profit Share</th><th class="num">Amount Paid</th><th class="num">Balance Due</th><th>Status</th></tr></thead>
+          <thead><tr><th>#</th><th>Investor</th><th class="num">Capital Contributed</th><th class="num">Share %</th><th class="num">Profit Share</th><th class="num">Amount Paid</th><th class="num">Balance Due</th><th>Status</th></tr></thead>
           <tbody id="investorsBody"></tbody>
         </table>
       </div>
@@ -476,7 +476,7 @@ hr.div{border:none; border-top:1px solid var(--line); margin:16px 0;}
       </div>
       <div class="table-wrap table-scroll">
         <table>
-          <thead><tr><th>Month</th><th class="num">Total Sales</th><th class="num">Expenses</th><th class="num">Salaries</th><th class="num">Equipment</th><th class="num">Net Profit</th><th class="num">Margin</th></tr></thead>
+          <thead><tr><th>Month</th><th class="num">Total Sales</th><th class="num">Expenses</th><th class="num">Salaries</th><th class="num">Net Profit</th><th class="num">Margin</th></tr></thead>
           <tbody id="monthlyBody"></tbody>
         </table>
       </div>
@@ -650,11 +650,11 @@ function defaultStore(){
     paymentMethods: ["Mobile Money","Bank Transfer","Cash","Cheque","Other"],
     distribution: { investors: 60, growth: 30, reserve: 10 },
     investors: [
-      { id: uid(), name: "Miracle Amoah", sharePercent: 20 },
-      { id: uid(), name: "Christian Adu-Gyamfi", sharePercent: 20 },
-      { id: uid(), name: "Richard Adu Awuku", sharePercent: 20 },
-      { id: uid(), name: "Gloria Sarpong Dzogbo", sharePercent: 20 },
-      { id: uid(), name: "Cyntia Minnah", sharePercent: 20 }
+      { id: uid(), name: "Miracle Amoah", sharePercent: 20, contribution: 0 },
+      { id: uid(), name: "Christian Adu-Gyamfi", sharePercent: 20, contribution: 0 },
+      { id: uid(), name: "Richard Adu Awuku", sharePercent: 20, contribution: 0 },
+      { id: uid(), name: "Gloria Sarpong Dzogbo", sharePercent: 20, contribution: 0 },
+      { id: uid(), name: "Cyntia Minnah", sharePercent: 20, contribution: 0 }
     ],
     dailySales: [],
     expenses: [],
@@ -693,6 +693,9 @@ function mergeWithDefaults(parsed){
   if(!Array.isArray(out.breadTypes) || !out.breadTypes.length) out.breadTypes = d.breadTypes;
   if(!Array.isArray(out.expenseCategories) || !out.expenseCategories.length) out.expenseCategories = d.expenseCategories;
   if(!Array.isArray(out.investors) || !out.investors.length) out.investors = d.investors;
+  out.investors = out.investors.map(function(inv){
+    return Object.assign({ contribution: 0 }, inv);
+  });
   if(!Array.isArray(out.dailySales)) out.dailySales = [];
   if(!Array.isArray(out.expenses)) out.expenses = [];
   if(!Array.isArray(out.salaries)) out.salaries = [];
@@ -802,8 +805,7 @@ function profitSummary(){
   var sales = totalSalesAmt();
   var expenses = totalExpensesAmt();
   var salaries = totalSalariesAmt();
-  var equipment = totalEquipmentAmt();
-  var costs = expenses + salaries + equipment;
+  var costs = expenses + salaries; // equipment is record-keeping only — it never affects cost/profit totals
   var gross = sales - costs;
   var margin = sales>0 ? gross/sales : 0;
   var baked = totalBakedUnits(), sold = totalSoldUnits(), free = totalFreeUnits();
@@ -814,7 +816,7 @@ function profitSummary(){
   var growthFund = distributable * (num(dist.growth)/100);
   var reserveFund = distributable * (num(dist.reserve)/100);
   return {
-    sales: sales, expenses: expenses, salaries: salaries, equipment: equipment, totalCosts: costs,
+    sales: sales, expenses: expenses, salaries: salaries, totalCosts: costs,
     grossProfit: gross, margin: margin, unsold: totalUnsoldUnits(), baked: baked, sold: sold, free: free,
     sellThrough: sellThrough, investorPool: investorPool, growthFund: growthFund, reserveFund: reserveFund
   };
@@ -846,7 +848,7 @@ function investorBreakdown(){
 function monthlyAggregate(){
   var map = {};
   function ensure(key){
-    if(!map[key]) map[key] = { key:key, sales:0, expenses:0, salaries:0, equipment:0 };
+    if(!map[key]) map[key] = { key:key, sales:0, expenses:0, salaries:0 };
     return map[key];
   }
   STORE.dailySales.forEach(function(s){
@@ -861,16 +863,12 @@ function monthlyAggregate(){
     if(!s.date) return;
     ensure(monthKey(s.date)).salaries += num(s.amount);
   });
-  STORE.equipment.forEach(function(e){
-    if(!e.date) return;
-    ensure(monthKey(e.date)).equipment += num(e.cost);
-  });
   var keys = Object.keys(map).sort();
   return keys.map(function(k){
     var m = map[k];
-    var profit = m.sales - m.expenses - m.salaries - m.equipment;
+    var profit = m.sales - m.expenses - m.salaries;
     var margin = m.sales>0 ? profit/m.sales : null;
-    return { key:k, label: monthLabel(k), sales:m.sales, expenses:m.expenses, salaries:m.salaries, equipment:m.equipment, profit:profit, margin:margin };
+    return { key:k, label: monthLabel(k), sales:m.sales, expenses:m.expenses, salaries:m.salaries, profit:profit, margin:margin };
   });
 }
 
@@ -1058,7 +1056,7 @@ function renderDashboard(){
   $("#dashStats").innerHTML =
     '<div class="grid-4">'+
       statCard("stat-dark","Total Sales", money(ps.sales), "GHS revenue") +
-      statCard("stat-cream","Total Expenses", money(ps.totalCosts), "Expenses + salaries + equipment") +
+      statCard("stat-cream","Total Expenses", money(ps.totalCosts), "Expenses + salaries") +
       statCard("stat-orange","Net Profit", money(ps.grossProfit), "Sales minus costs") +
       statCard("stat-green","Profit Margin", pct(ps.margin), "of revenue") +
     '</div>';
@@ -1489,10 +1487,12 @@ function renderInvestorsPage(){
   var ps = profitSummary();
   $("#investorSub").textContent = "Net profit " + money(ps.grossProfit) + " · Investor pool ("+STORE.distribution.investors+"%): " + money(ps.investorPool);
   var breakdown = investorBreakdown();
+  var totalContributed = STORE.investors.reduce(function(a,inv){ return a + num(inv.contribution); }, 0);
   $("#investorStats").innerHTML =
     statCard("stat-dark","Net Profit", money(ps.grossProfit), "this period") +
     statCard("stat-orange","Investor Pool", money(ps.investorPool), STORE.distribution.investors+"% of profit") +
-    statCard("stat-green","Total Paid Out", money(breakdown.reduce(function(a,b){return a+b.paid;},0)), "across all investors");
+    statCard("stat-green","Total Paid Out", money(breakdown.reduce(function(a,b){return a+b.paid;},0)), "across all investors") +
+    statCard("stat-cream","Total Capital Contributed", money(totalContributed), "put into the business");
 
   var body = $("#investorsBody");
   body.innerHTML = breakdown.map(function(b, i){
@@ -1500,13 +1500,14 @@ function renderInvestorsPage(){
     return '<tr>'+
       '<td>'+(i+1)+'</td>'+
       '<td>'+esc(b.investor.name)+'</td>'+
+      '<td class="num">'+money(num(b.investor.contribution))+'</td>'+
       '<td class="num">'+num(b.investor.sharePercent)+'%</td>'+
       '<td class="num">'+money(b.share)+'</td>'+
       '<td class="num">'+money(b.paid)+'</td>'+
       '<td class="num">'+money(Math.max(b.balance,0))+'</td>'+
       '<td><span class="badge '+badge+'">'+b.status+'</span></td>'+
       '</tr>';
-  }).join("") + '<tr class="total-row"><td colspan="3">TOTALS</td><td class="num">'+money(breakdown.reduce(function(a,b){return a+b.share;},0))+'</td><td class="num">'+money(breakdown.reduce(function(a,b){return a+b.paid;},0))+'</td><td class="num">'+money(breakdown.reduce(function(a,b){return a+Math.max(b.balance,0);},0))+'</td><td></td></tr>';
+  }).join("") + '<tr class="total-row"><td colspan="2">TOTALS</td><td class="num">'+money(totalContributed)+'</td><td class="num"></td><td class="num">'+money(breakdown.reduce(function(a,b){return a+b.share;},0))+'</td><td class="num">'+money(breakdown.reduce(function(a,b){return a+b.paid;},0))+'</td><td class="num">'+money(breakdown.reduce(function(a,b){return a+Math.max(b.balance,0);},0))+'</td><td></td></tr>';
 
   var payRows = STORE.investorPayments.slice().sort(function(a,b){ return (b.date||"").localeCompare(a.date||""); });
   var payBody = $("#paymentsBody");
@@ -1581,13 +1582,13 @@ function renderMonthlyPage(){
   var months = monthlyAggregate();
   var body = $("#monthlyBody");
   if(!months.length){
-    body.innerHTML = '<tr class="empty-row"><td colspan="7">No data yet. Once you log sales, expenses, salaries or equipment, monthly totals will appear here automatically.</td></tr>';
+    body.innerHTML = '<tr class="empty-row"><td colspan="6">No data yet. Once you log sales, expenses, salaries or equipment, monthly totals will appear here automatically.</td></tr>';
     return;
   }
-  var totals = months.reduce(function(a,m){ a.sales+=m.sales; a.expenses+=m.expenses; a.salaries+=m.salaries; a.equipment+=m.equipment; a.profit+=m.profit; return a; }, {sales:0,expenses:0,salaries:0,equipment:0,profit:0});
+  var totals = months.reduce(function(a,m){ a.sales+=m.sales; a.expenses+=m.expenses; a.salaries+=m.salaries; a.profit+=m.profit; return a; }, {sales:0,expenses:0,salaries:0,profit:0});
   body.innerHTML = months.map(function(m){
-    return '<tr><td>'+esc(m.label)+'</td><td class="num">'+money(m.sales)+'</td><td class="num">'+money(m.expenses)+'</td><td class="num">'+money(m.salaries)+'</td><td class="num">'+money(m.equipment)+'</td><td class="num">'+money(m.profit)+'</td><td class="num">'+pct(m.margin)+'</td></tr>';
-  }).join("") + '<tr class="total-row"><td>TOTAL</td><td class="num">'+money(totals.sales)+'</td><td class="num">'+money(totals.expenses)+'</td><td class="num">'+money(totals.salaries)+'</td><td class="num">'+money(totals.equipment)+'</td><td class="num">'+money(totals.profit)+'</td><td class="num">'+pct(totals.sales>0?totals.profit/totals.sales:0)+'</td></tr>';
+    return '<tr><td>'+esc(m.label)+'</td><td class="num">'+money(m.sales)+'</td><td class="num">'+money(m.expenses)+'</td><td class="num">'+money(m.salaries)+'</td><td class="num">'+money(m.profit)+'</td><td class="num">'+pct(m.margin)+'</td></tr>';
+  }).join("") + '<tr class="total-row"><td>TOTAL</td><td class="num">'+money(totals.sales)+'</td><td class="num">'+money(totals.expenses)+'</td><td class="num">'+money(totals.salaries)+'</td><td class="num">'+money(totals.profit)+'</td><td class="num">'+pct(totals.sales>0?totals.profit/totals.sales:0)+'</td></tr>';
 }
 
 /* ---------------------------------------------------------------------
@@ -1620,13 +1621,21 @@ function renderSettingsPage(){
   $("#distGrowth").value = STORE.distribution.growth;
   $("#distReserve").value = STORE.distribution.reserve;
 
-  $("#investorEditList").innerHTML = STORE.investors.map(function(inv){
-    return '<div class="form-row" style="grid-template-columns:2fr 1fr auto; margin-bottom:8px;" data-inv="'+inv.id+'">'+
+  $("#investorEditList").innerHTML =
+    '<div class="form-row" style="grid-template-columns:2fr 1fr 1fr auto; margin-bottom:2px;">'+
+      '<div class="field"><label>Name</label></div>'+
+      '<div class="field"><label>Capital Contributed ('+STORE.meta.currency+')</label></div>'+
+      '<div class="field"><label>Share %</label></div>'+
+      '<div></div>'+
+    '</div>' +
+    STORE.investors.map(function(inv){
+    return '<div class="form-row" style="grid-template-columns:2fr 1fr 1fr auto; margin-bottom:8px;" data-inv="'+inv.id+'">'+
       '<div class="field"><input type="text" class="inv-name" value="'+esc(inv.name)+'"></div>'+
+      '<div class="field"><input type="number" class="inv-contribution" min="0" step="0.01" value="'+esc(num(inv.contribution))+'"></div>'+
       '<div class="field"><input type="number" class="inv-share" min="0" max="100" value="'+esc(inv.sharePercent)+'"></div>'+
       '<button class="btn btn-danger btn-sm del-investor">Remove</button>'+
       '</div>';
-  }).join("") + '<div class="inline-note">Share % total: <strong>'+investorSharePercentSum()+'%</strong> (should equal 100%)</div>' +
+  }).join("") + '<div class="inline-note">Share % total: <strong>'+investorSharePercentSum()+'%</strong> (should equal 100%) &middot; Total capital contributed: <strong>'+money(STORE.investors.reduce(function(a,inv){return a+num(inv.contribution);},0))+'</strong></div>' +
     '<button class="btn btn-sm mt10" id="btnSaveInvestors">Save Investor Changes</button>';
 }
 
@@ -1862,7 +1871,7 @@ function wireSettings(){
   });
 
   $("#btnAddInvestor").addEventListener("click", function(){
-    STORE.investors.push({ id: uid(), name: "New Investor", sharePercent: 0 });
+    STORE.investors.push({ id: uid(), name: "New Investor", sharePercent: 0, contribution: 0 });
     saveStore(); renderSettingsPage();
   });
   $("#investorEditList").addEventListener("click", function(e){
@@ -1883,7 +1892,8 @@ function wireSettings(){
       var id = row.dataset.inv;
       var name = row.querySelector(".inv-name").value.trim() || "Investor";
       var share = parseFloat(row.querySelector(".inv-share").value) || 0;
-      return { id:id, name:name, sharePercent:share };
+      var contribution = parseFloat(row.querySelector(".inv-contribution").value) || 0;
+      return { id:id, name:name, sharePercent:share, contribution:contribution };
     });
     STORE.investors = updated;
     saveStore(); renderSettingsPage();
@@ -2027,7 +2037,6 @@ function exportExcelWorkbook(){
     ["Total Sales", ps.sales],
     ["Total Expenses", ps.expenses],
     ["Total Salaries", ps.salaries],
-    ["Total Equipment & Tools", ps.equipment],
     ["Total Costs", ps.totalCosts],
     ["Gross Profit", ps.grossProfit],
     ["Profit Margin", Math.round(ps.margin*1000)/1000],
@@ -2039,13 +2048,15 @@ function exportExcelWorkbook(){
     ["Total Baked (units)", ps.baked],
     ["Total Sold (units)", ps.sold],
     ["Total Unsold (units)", ps.unsold],
-    ["Sell-Through Rate", Math.round(ps.sellThrough*1000)/1000]
+    ["Sell-Through Rate", Math.round(ps.sellThrough*1000)/1000],
+    [],
+    ["Equipment & Tools on record (see Equipment sheet — not counted in expenses above)", totalEquipmentAmt()]
   ]);
 
   // Investor Shares
-  var invAoa = [["#","Investor Name","Share % (of pool)","Profit Share","Amount Paid","Balance Due","Status"]];
+  var invAoa = [["#","Investor Name","Capital Contributed","Share % (of pool)","Profit Share","Amount Paid","Balance Due","Status"]];
   investorBreakdown().forEach(function(b,i){
-    invAoa.push([i+1, b.investor.name, num(b.investor.sharePercent), Math.round(b.share*100)/100, Math.round(b.paid*100)/100, Math.round(Math.max(b.balance,0)*100)/100, b.status]);
+    invAoa.push([i+1, b.investor.name, num(b.investor.contribution), num(b.investor.sharePercent), Math.round(b.share*100)/100, Math.round(b.paid*100)/100, Math.round(Math.max(b.balance,0)*100)/100, b.status]);
   });
   addSheet("Investor Shares", invAoa);
 
@@ -2058,9 +2069,9 @@ function exportExcelWorkbook(){
   addSheet("Investor Payments", payAoa);
 
   // Monthly Summary
-  var monAoa = [["Month","Total Sales","Total Expenses","Salaries","Equipment","Net Profit","Profit Margin"]];
+  var monAoa = [["Month","Total Sales","Total Expenses","Salaries","Net Profit","Profit Margin"]];
   monthlyAggregate().forEach(function(m){
-    monAoa.push([m.label, Math.round(m.sales*100)/100, Math.round(m.expenses*100)/100, Math.round(m.salaries*100)/100, Math.round(m.equipment*100)/100, Math.round(m.profit*100)/100, m.margin===null?"":Math.round(m.margin*1000)/1000]);
+    monAoa.push([m.label, Math.round(m.sales*100)/100, Math.round(m.expenses*100)/100, Math.round(m.salaries*100)/100, Math.round(m.profit*100)/100, m.margin===null?"":Math.round(m.margin*1000)/1000]);
   });
   addSheet("Monthly Summary", monAoa);
 
