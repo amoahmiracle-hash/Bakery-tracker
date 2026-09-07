@@ -1,12 +1,8 @@
 /* Five Grains Bakery Tracker — Service Worker
-   Caches the app shell so it keeps working with no internet connection.
-   Uses a NETWORK-FIRST strategy: whenever the phone has internet, it
-   always fetches the latest version before showing anything, and only
-   falls back to the cached copy if the network request fails (i.e.
-   genuinely offline). This means updates show up on the very next open,
-   not "the open after that". Bump CACHE_NAME on every release so the
-   activate step clears out anything from the previous version. */
-const CACHE_NAME = "fgb-tracker-v4";
+   Network-first: always fetches the latest version when online, and only
+   falls back to the cached copy when genuinely offline. Bump CACHE_NAME
+   on every future release so old cached files get cleaned out. */
+const CACHE_NAME = "fgb-v3-owner-v1";
 const ASSETS = [
   "./",
   "./index.html",

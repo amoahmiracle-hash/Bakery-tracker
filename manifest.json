@@ -1,7 +1,7 @@
 {
   "name": "Five Grains Bakery Tracker",
   "short_name": "5 Grains",
-  "description": "Offline business tracker for Five Grains Bakery — sales, expenses, salaries and investor profit sharing.",
+  "description": "Business management system for Five Grains Bakery — sales, costs, cash flow, break-even and investor profit sharing.",
   "start_url": "./index.html",
   "scope": "./",
   "id": "./index.html",
